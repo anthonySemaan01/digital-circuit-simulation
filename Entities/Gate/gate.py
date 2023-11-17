@@ -39,14 +39,14 @@ def simulate_gate(gate_type, inputs):
     else:
         raise ValueError(f"Unknown gate type: {gate_type}")
 
-
-def parse_bench_file_with_wires_and_gates(file_path):
+def parse_bench_file_with_unique_inputs(file_path):
     circuit = {
         "inputs": [],
         "outputs": [],
         "gates": {},
         "wires": {}
     }
+    input_usage_count = {}  # Track how many times an input is used
 
     with open(file_path, 'r') as file:
         for line in file:
@@ -59,6 +59,7 @@ def parse_bench_file_with_wires_and_gates(file_path):
                 input_name = line.split('(')[1].split(')')[0]
                 circuit["inputs"].append(input_name)
                 circuit["wires"][input_name] = Wire(input_name)
+                input_usage_count[input_name] = 0
 
             elif line.startswith("OUTPUT"):
                 output_name = line.split('(')[1].split(')')[0]
@@ -70,7 +71,18 @@ def parse_bench_file_with_wires_and_gates(file_path):
                 gate_def = gate_info[1].strip()
                 gate_type = re.split(r'\(|,', gate_def)[0]
                 fanin_names = re.findall(r'\(([^)]+)', gate_def)[0].split(',')
-                fanin_wires = [circuit["wires"][name.strip()] for name in fanin_names]
+
+                fanin_wires = []
+                for name in fanin_names:
+                    name = name.strip()
+                    if name in circuit["inputs"]:
+                        input_usage_count[name] += 1
+                        new_name = f"{name}.{input_usage_count[name]}"
+                        circuit["wires"][new_name] = Wire(new_name)
+                        fanin_wires.append(circuit["wires"][new_name])
+                        circuit["wires"][name].add_fanout(circuit["wires"][new_name])
+                    else:
+                        fanin_wires.append(circuit["wires"][name])
 
                 gate = Gate(gate_name, gate_type, fanin_wires)
                 circuit["gates"][gate_name] = gate
@@ -81,11 +93,11 @@ def parse_bench_file_with_wires_and_gates(file_path):
 
                 for wire in fanin_wires:
                     wire.add_fanout(gate)
-
+    print(circuit)
     return circuit
 
 # The simulate_circuit function remains the same as simulate_circuit_with_wires
 # Example usage:
-# circuit_info = parse_bench_file_with_wires_and_gates("path_to_bench_file.bench")
+circuit_info = parse_bench_file_with_unique_inputs("../../data/benchmarks/c17.txt")
 # input_vector = {"1": True, "2": False, ... }
 # output_values = simulate_circuit_with_wires(circuit_info, input_vector)
