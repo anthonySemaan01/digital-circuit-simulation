@@ -20,7 +20,7 @@ class Gate:
             self.output_wire.set_value(output_value)
 
     def toString(self):
-        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || fan_out: {self.output_wire}"
+        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {[wire.toString() for wire in self.fanin_wires]} || fan_out: {self.output_wire}"
 
 
 def simulate_gate(gate_type, inputs):
