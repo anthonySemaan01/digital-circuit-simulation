@@ -87,16 +87,11 @@ def parse_bench_file_with_all_unique_wires(file_path):
 
                     new_name = f"{name}.{wire_usage_count[name]}"
                     new_name2 = f"{name}.{wire_usage_count[name] - 1}"
-
-                    if wire_usage_count[name] >= 2:
-                        circuit["wires"][new_name] = Wire(new_name)
-                        fanin_wires.append(circuit["wires"][new_name])
-
-                        circuit["wires"][new_name2] = Wire(new_name2)
-                        fanin_wires.append(circuit["wires"][new_name2])
-                        if name in circuit["wires"]:
-                            circuit["wires"][name].add_fanout(circuit["wires"][new_name])
-                            circuit["wires"][name].add_fanout(circuit["wires"][new_name2])
+                    circuit["wires"][new_name] = Wire(new_name)
+                    fanin_wires.append(circuit["wires"][new_name])
+                    if name in circuit["wires"]:
+                        circuit["wires"][name].add_fanout(circuit["wires"][new_name])
+                        circuit["wires"][name].add_fanout(circuit["wires"][new_name2])
 
                 gate = Gate(gate_name, gate_type, fanin_wires)
                 circuit["gates"][gate_name] = gate
