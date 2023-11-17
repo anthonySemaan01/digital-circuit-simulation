@@ -4,17 +4,20 @@ class Gate:
     def __init__(self, name, gate_type, fanin_wires):
         self.name = name
         self.gate_type = gate_type
-        self.fanin_wires = fanin_wires  # List of Wire objects for fanin
+        self.fanin_wires = list(map(lambda x: x.toString(), fanin_wires)) # List of Wire objects for fanin
         self.output_wire = None  # Will be set later
 
     def set_output_wire(self, wire):
-        self.output_wire = wire
+        self.output_wire = wire.toString()
 
     def compute_output(self):
         input_values = [wire.value for wire in self.fanin_wires]
         output_value = simulate_gate(self.gate_type, input_values)
         if self.output_wire:
             self.output_wire.set_value(output_value)
+
+    def toString(self):
+        return self.name,self.gate_type,self.fanin_wires,self.output_wire
 
 
 def simulate_gate(gate_type, inputs):
@@ -85,7 +88,7 @@ def parse_bench_file_with_unique_inputs(file_path):
                         fanin_wires.append(circuit["wires"][name])
 
                 gate = Gate(gate_name, gate_type, fanin_wires)
-                circuit["gates"][gate_name] = gate
+                circuit["gates"][gate_name] = gate.toString()
 
                 output_wire = Wire(gate_name)
                 gate.set_output_wire(output_wire)
@@ -93,7 +96,7 @@ def parse_bench_file_with_unique_inputs(file_path):
 
                 for wire in fanin_wires:
                     wire.add_fanout(gate)
-    print(circuit)
+    print(circuit["gates"])
     return circuit
 
 # The simulate_circuit function remains the same as simulate_circuit_with_wires
