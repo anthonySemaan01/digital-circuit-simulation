@@ -34,8 +34,9 @@ def parse_bench_file(file_path):
 
             # Parse gates
             else:
+                # 10 = NAND(1, 3)
                 gate_info = line.split('=')
-                gate_name = gate_info[0].strip()
+                gate_name = gate_info[0].strip() 
                 gate_def = gate_info[1].strip()
                 gate_type = re.split(r'\(|,', gate_def)[0]
                 fanin = re.findall(r'\(([^)]+)', gate_def)[0].split(',')
