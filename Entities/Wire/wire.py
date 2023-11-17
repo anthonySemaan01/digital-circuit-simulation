@@ -11,7 +11,7 @@ class Wire:
             fanout_element.set_input_value(self.name, value)
 
     def add_fanout(self, element):
-        self.fanout.append(element.toString())
+        self.fanout.append(element)
 
-    def toString(self):
+    def __str__(self):
         return f"name: {self.name} || value: {self.value} || fanout: {self.fanout}"

@@ -13,10 +13,10 @@ router = APIRouter()
 
 @router.get("/parse_and_build")
 def parse_and_build_cirucit(file_name: str):
-    data = parse_bench_file_with_all_unique_wires(file_path=os.path.join(paths["benchmarks"], file_name))
+    data = parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
 
     for key, value in data["gates"].items():
-        print(f"key: {key} --> {value.toString()}")
+        print(f"key: {key} --> {value}")
     return str(data)
 
 

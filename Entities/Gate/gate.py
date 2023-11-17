@@ -1,4 +1,3 @@
-from Entities.Wire.wire import Wire
 import re
 
 from Entities.Wire.wire import Wire
@@ -12,7 +11,7 @@ class Gate:
         self.output_wire = None  # Will be set later
 
     def set_output_wire(self, wire):
-        self.output_wire = wire.toString()
+        self.output_wire = wire
 
     def compute_output(self):
         input_values = [wire.value for wire in self.fanin_wires]
@@ -20,7 +19,7 @@ class Gate:
         if self.output_wire:
             self.output_wire.set_value(output_value)
 
-    def toString(self):
+    def __str__(self):
         return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || fan_out: {self.output_wire}"
 
 
@@ -65,12 +64,10 @@ def parse_bench_file_with_unique_inputs(file_path):
                 continue
 
             if line.startswith("INPUT"):
-                input_wire_number = line.split('(')[1].split(')')[0]
-                circuit["inputs"].append(input_wire_number)
+                circuit["inputs"].append(line.split('(')[1].split(')')[0])
 
             elif line.startswith("OUTPUT"):
-                output_name = line.split('(')[1].split(')')[0]
-                circuit["outputs"].append(output_name)
+                circuit["outputs"].append(line.split('(')[1].split(')')[0])
 
             else:
                 gate_info = line.split('=')
@@ -79,33 +76,31 @@ def parse_bench_file_with_unique_inputs(file_path):
                 gate_def = gate_info[1].strip()
                 gate_type = re.split(r'\(|,', gate_def)[0]
 
-                print(f"Gate: {gate_info, gate_name, gate_def, gate_type}")
-                fanin_names = re.findall(r'\(([^)]+)', gate_def)[0].split(',')
-                fanin_names = [fanin_name.strip() for fanin_name in fanin_names]
+                fanin_names = [fanin_name.strip() for fanin_name in re.findall(r'\(([^)]+)', gate_def)[0].split(',')]
 
-                for fanin_wire_name in fanin_names:
-                    if fanin_wire_name in wires_usage_count:
-                        wires_usage_count[fanin_wire_name] += 1
-                    else:
-                        wires_usage_count[fanin_wire_name] = 1
-                        circuit["wires"][fanin_wire_name] = Wire(fanin_wire_name)
+                # for fanin_wire_name in fanin_names:
+                #     if fanin_wire_name in wires_usage_count:
+                #         wires_usage_count[fanin_wire_name] += 1
+                #     else:
+                #         wires_usage_count[fanin_wire_name] = 1
+                #         circuit["wires"][fanin_wire_name] = Wire(fanin_wire_name)
 
                 fanin_wires = []
 
                 for fanin_wire_name in fanin_names:
-                    print(f"fanin_wire_name: {fanin_wire_name}; wires_usage_count: {wires_usage_count}")
-                    if wires_usage_count[fanin_wire_name] > 1:
-                        print(f"count of wire {fanin_wire_name} when accessed is {wires_usage_count[fanin_wire_name]}")
-                        new_fanout_wire_name = f"{fanin_wire_name}.{wires_usage_count[fanin_wire_name]-1}"
+                    if fanin_wire_name not in wires_usage_count:
+                        wires_usage_count[fanin_wire_name] = 1
+                        fanin_wires.append(circuit["wires"][fanin_wire_name])
+
+                    else:
+                        new_fanout_wire_name = f"{fanin_wire_name}.{wires_usage_count[fanin_wire_name] - 1}"
                         circuit["wires"][new_fanout_wire_name] = Wire(new_fanout_wire_name)
                         fanin_wires.append(circuit["wires"][new_fanout_wire_name])
 
                         circuit["wires"][fanin_wire_name].add_fanout(circuit["wires"][new_fanout_wire_name])
-                    else:
-                        fanin_wires.append(circuit["wires"][fanin_wire_name])
 
                 gate = Gate(gate_name, gate_type, fanin_wires)
-                circuit["gates"][gate_name] = gate.toString()
+                circuit["gates"][gate_name] = gate
 
                 output_wire = Wire(gate_name)
                 gate.set_output_wire(output_wire)
@@ -113,5 +108,5 @@ def parse_bench_file_with_unique_inputs(file_path):
 
                 # for wire in fanin_wires:
                 #     wire.add_fanout(gate)
-    print(circuit["gates"])
+    print(circuit)
     return circuit
