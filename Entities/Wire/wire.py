@@ -14,4 +14,4 @@ class Wire:
         self.fanout.append(element.toString())
 
     def toString(self):
-        return self.name,self.value,self.fanout
+        return f"name: {self.name} || value: {self.value} || fanout: {self.fanout}"
