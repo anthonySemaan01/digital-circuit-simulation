@@ -1,10 +1,13 @@
-from Entities.Wire.wire import Wire
 import re
+
+from Entities.Wire.wire import Wire
+
+
 class Gate:
     def __init__(self, name, gate_type, fanin_wires):
         self.name = name
         self.gate_type = gate_type
-        self.fanin_wires = list(map(lambda x: x.toString(), fanin_wires)) # List of Wire objects for fanin
+        self.fanin_wires = fanin_wires  # List of Wire objects for fanin
         self.output_wire = None  # Will be set later
 
     def set_output_wire(self, wire):
@@ -17,7 +20,7 @@ class Gate:
             self.output_wire.set_value(output_value)
 
     def toString(self):
-        return self.name,self.gate_type,self.fanin_wires,self.output_wire
+        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || fan_out: {self.output_wire}"
 
 
 def simulate_gate(gate_type, inputs):
@@ -41,6 +44,8 @@ def simulate_gate(gate_type, inputs):
         return not inputs[0]
     else:
         raise ValueError(f"Unknown gate type: {gate_type}")
+
+
 def parse_bench_file_with_all_unique_wires(file_path):
     circuit = {
         "inputs": [],
@@ -79,9 +84,11 @@ def parse_bench_file_with_all_unique_wires(file_path):
                     name = name.strip()
                     wire_usage_count.setdefault(name, 0)
                     wire_usage_count[name] += 1
+
                     new_name = f"{name}.{wire_usage_count[name]}"
-                    new_name2 = f"{name}.{wire_usage_count[name]-1}"
-                    if wire_usage_count[name] >=2:
+                    new_name2 = f"{name}.{wire_usage_count[name] - 1}"
+
+                    if wire_usage_count[name] >= 2:
                         circuit["wires"][new_name] = Wire(new_name)
                         fanin_wires.append(circuit["wires"][new_name])
 
@@ -102,9 +109,3 @@ def parse_bench_file_with_all_unique_wires(file_path):
                     wire.add_fanout(gate)
     print(circuit["wires"])
     return circuit
-
-# The simulate_circuit function remains the same as simulate_circuit_with_wires
-# Example usage:
-circuit_info = parse_bench_file_with_all_unique_wires("../../data/benchmarks/c17.txt")
-# input_vector = {"1": True, "2": False, ... }
-# output_values = simulate_circuit_with_wires(circuit_info, input_vector)
