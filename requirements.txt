@@ -1,0 +1,5 @@
+fastapi[all]==0.95.0
+dependency-injector==4.31.2
+starlette==0.26.1
+pydantic==1.9.0
+pandas==2.0.3
