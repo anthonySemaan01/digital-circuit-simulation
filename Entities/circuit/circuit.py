@@ -34,6 +34,11 @@ class Circuit:
 
         return None
 
+    def get_gate_connected_to_wire(self, wire: Wire):
+        for gate in self.gates:
+            if wire in gate.fanin_wires:
+                return gate
+
     def __str__(self):
         return f"inputs: {[str(wire) for wire in self.inputs]} || outputs: {[str(wire) for wire in self.outputs]} || gates: {[str(gate) for gate in self.gates]} || wires: {[str(wire) for wire in self.wires]}"
 
@@ -54,13 +59,6 @@ class Circuit:
                                           can_be_triggered=True)
                     self.inputs.append(new_input_wire)
                     self.wires.append(new_input_wire)
-
-                # elif line.startswith("OUTPUT"):
-                #     new_output_wire = Wire(name=line.split('(')[1].split(')')[0], is_input=False,
-                #                            seen_as_input_before=False, has_direct_connection_to_gate=False,
-                #                            can_be_triggered=False)
-                #     self.outputs.append(new_output_wire)
-                #     self.wires.append(new_output_wire)
 
                 elif line.startswith("OUTPUT"):
                     output_wires_tracker.append(line.split('(')[1].split(')')[0])
@@ -94,6 +92,11 @@ class Circuit:
                                                     has_direct_connection_to_gate=True,
                                                     can_be_triggered=True if wire.is_input else False)
                                     wire.fanout.append(wire_one)
+                                    gate_connected_to_initial_wire_before_split = self.get_gate_connected_to_wire(wire)
+                                    gate_connected_to_initial_wire_before_split.fanin_wires[next(
+                                        (i for i, inst in
+                                         enumerate(gate_connected_to_initial_wire_before_split.fanin_wires) if
+                                         inst is wire), None)] = wire_one
 
                                     wire_two = Wire(name=f"{fanin_wire_name}.{len(wire.fanout) + 1}",
                                                     seen_as_input_before=True,
@@ -139,6 +142,7 @@ class Circuit:
                     created_output_wire = Wire(name=created_gate.name, has_direct_connection_to_gate=False,
                                                seen_as_input_before=False, is_input=False, can_be_triggered=False)
                     created_gate.output_wire = created_output_wire
+
                     if created_gate.name in output_wires_tracker:
                         self.outputs.append(created_output_wire)
 
@@ -165,6 +169,7 @@ class Circuit:
             stuck_at_wire.stuck_at_value = place_stuck_at.value
             stuck_at_wire.can_be_triggered = True
             stuck_at_wire.ensure_fanout_can_be_triggered()
+            print(f"stuck at wire: {stuck_at_wire}")
 
         simulated_gates = []
         non_simulated_gates = self.gates
