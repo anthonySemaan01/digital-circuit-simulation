@@ -1,13 +1,15 @@
 from typing import List, Union
+
 from Entities.Wire.wire import Wire
 
 
 class Gate:
-    def __init__(self, name: str, gate_type: str, fanin_wires: List[Wire]):
+    def __init__(self, name: str, gate_type: str, fanin_wires: Union[List[Wire], None] = None,
+                 output_wire: Union[Wire, None] = None):
         self.name = name
         self.gate_type = gate_type
         self.fanin_wires = fanin_wires  # List of Wire objects for fanin
-        self.output_wire = None  # Will be set later
+        self.output_wire = output_wire  # Will be set later
 
     def set_output_wire(self, wire):
         self.output_wire = wire
@@ -19,10 +21,7 @@ class Gate:
             self.output_wire.set_value(output_value)
 
     def __str__(self):
-        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || fan_out: {self.output_wire}"
-
-
-
+        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || output_wire: {self.output_wire}"
 
 
 def simulate_gate(gate_type, inputs):
