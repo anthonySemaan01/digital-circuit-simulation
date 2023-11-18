@@ -3,7 +3,7 @@ import os
 from fastapi import APIRouter
 
 from Entities.circuit.circuit import Circuit
-from application.service.service.simulation_service import simulate
+from domain.models.simulate_circuit import SimulateCircuit
 from shared.helpers.json_handler import read_json_file
 
 paths = read_json_file("./assets/paths.json")
@@ -23,7 +23,9 @@ def parse_and_build_cirucit(file_name: str):
     print(circuit)
 
 
-@router.get("/simulate")
-def simulate_circuit(file_name: str):
-    data = simulate(file_name=file_name)
-    return data
+@router.post("/simulate")
+def simulate_circuit(simulate_circuit: SimulateCircuit):
+    circuit = Circuit()
+    circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], simulate_circuit.file_name))
+    circuit.simulate_circuit(input_vector=simulate_circuit.input_params, place_stuck_at=simulate_circuit.stuck_at)
+    return circuit.get_circuit_output_values()

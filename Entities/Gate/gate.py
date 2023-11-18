@@ -14,34 +14,50 @@ class Gate:
     def set_output_wire(self, wire):
         self.output_wire = wire
 
-    def compute_output(self):
-        input_values = [wire.value for wire in self.fanin_wires]
-        output_value = simulate_gate(self.gate_type, input_values)
-        if self.output_wire:
-            self.output_wire.set_value(output_value)
+    def can_be_triggered(self):
+        can_be_triggered = False
+        for fanin_wire in self.fanin_wires:
+            if not fanin_wire.can_be_triggered:
+                return False
+
+        return True
 
     def __str__(self):
         return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {self.fanin_wires} || output_wire: {self.output_wire}"
 
+    def simulate(self):
 
-def simulate_gate(gate_type, inputs):
-    """
-    Simulate the logic of a gate.
-    :param gate_type: Type of the gate (e.g., AND, NAND, OR, etc.)
-    :param inputs: Input values for the gate.
-    :return: Output of the gate.
-    """
-    if gate_type == "AND":
-        return all(inputs)
-    elif gate_type == "NAND":
-        return not all(inputs)
-    elif gate_type == "OR":
-        return any(inputs)
-    elif gate_type == "NOR":
-        return not any(inputs)
-    elif gate_type == "XOR":
-        return sum(inputs) == 1
-    elif gate_type == "INVERTER":
-        return not inputs[0]
-    else:
-        raise ValueError(f"Unknown gate type: {gate_type}")
+        if self.output_wire.is_stuck_at:
+            self.output_wire.value = self.output_wire.stuck_at_value
+            self.output_wire.given_a_value = True
+            self.output_wire.can_be_triggered = True
+            self.output_wire.ensure_fanout_can_be_triggered()
+
+        else:
+            values_at_fanin_wires = []
+
+            for input_wire in self.fanin_wires:
+                if input_wire.is_stuck_at:
+                    values_at_fanin_wires.append(input_wire.stuck_at_value)
+                else:
+                    values_at_fanin_wires.append(input_wire.value)
+
+            if self.gate_type == "AND":
+                value = all(values_at_fanin_wires)
+            elif self.gate_type == "NAND":
+                value = not all(values_at_fanin_wires)
+            elif self.gate_type == "OR":
+                value = any(values_at_fanin_wires)
+            elif self.gate_type == "NOR":
+                value = not any(values_at_fanin_wires)
+            elif self.gate_type == "XOR":
+                value = sum(values_at_fanin_wires) == 1
+            # elif self.gate_type == "INVERTER":
+            #     return not values_at_fanin_wires[0]
+            elif self.gate_type == "XNOR":
+                value = not (sum(values_at_fanin_wires))
+
+            self.output_wire.value = value
+            self.output_wire.given_a_value = True
+            self.output_wire.can_be_triggered = True
+            self.output_wire.ensure_fanout_can_be_triggered()
