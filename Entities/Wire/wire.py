@@ -18,21 +18,6 @@ class Wire:
         self.stuck_at_value = stuck_at_value
         self.can_be_triggered = False
 
-    # def ensure_fanout_can_be_triggered(self):
-    #     if self.can_be_triggered:
-    #         for fanout_wire in self.fanout:
-    #             fanout_wire.ensure_fanout_can_be_triggered()  # Recursively call for each fanout wire
-    #             fanout_wire.can_be_triggered = True
-
-    # def give_value_to_fanout(self):
-    #     if self.given_a_value:
-    #         for fanout_wire in self.fanout:
-    #             if fanout_wire.is_stuck_at:
-    #                 fanout_wire.value = self.stuck_at_value
-    #             else:
-    #                 self.give_value_to_fanout()
-    #                 fanout_wire.value = self.value
-
     def ensure_fanout_can_be_triggered(self):
         if self.can_be_triggered:
             for fanout_wire in self.fanout:
@@ -50,3 +35,4 @@ class Wire:
 
     def __str__(self):
         return f"name: {self.name} || value: {self.value} || given a value: {self.given_a_value} || can_be_triggered: {self.can_be_triggered} || fanout: {[str(wire) for wire in self.fanout]}"
+

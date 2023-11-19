@@ -52,8 +52,8 @@ class Gate:
                 value = not any(values_at_fanin_wires)
             elif self.gate_type == "XOR":
                 value = sum(values_at_fanin_wires) == 1
-            # elif self.gate_type == "INVERTER":
-            #     return not values_at_fanin_wires[0]
+            elif self.gate_type == "NOT":
+                value = not values_at_fanin_wires[0]
             elif self.gate_type == "XNOR":
                 value = not (sum(values_at_fanin_wires))
 
