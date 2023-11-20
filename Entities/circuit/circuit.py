@@ -150,17 +150,7 @@ class Circuit:
                     self.gates.append(created_gate)
 
     def simulate_circuit(self, input_vector: List[InputParam], place_stuck_at: Union[None, StuckAt] = None):
-
-        # assign the desired values to input wires
-        for input_wire in self.inputs:
-            for input_param in input_vector:
-                if input_param.wire_name == input_wire.name:
-                    input_wire.value = input_param.value
-                    input_wire.given_a_value = True
-                    input_wire.can_be_triggered = True
-                    input_wire.ensure_fanout_can_be_triggered()
-                    break
-
+        stuck_at_wire = None
         if place_stuck_at:
             stuck_at_wire = self.get_wire_based_on_name(place_stuck_at.wire_name)
             stuck_at_wire.is_stuck_at = True
@@ -170,6 +160,22 @@ class Circuit:
             stuck_at_wire.can_be_triggered = True
             stuck_at_wire.ensure_fanout_can_be_triggered()
             print(f"stuck at wire: {stuck_at_wire}")
+
+        # assign the desired values to input wires
+        for input_wire in self.inputs:
+            for input_param in input_vector:
+                if input_param.wire_name == input_wire.name:
+                    if stuck_at_wire is input_wire:
+                        input_wire.value = input_wire.stuck_at_value
+                        input_wire.stuck_at_value = input_wire.stuck_at_value
+                    else:
+                        input_wire.value = input_param.value
+                    input_wire.given_a_value = True
+                    input_wire.can_be_triggered = True
+                    input_wire.ensure_fanout_can_be_triggered()
+                    break
+
+
 
         simulated_gates = []
         non_simulated_gates = self.gates

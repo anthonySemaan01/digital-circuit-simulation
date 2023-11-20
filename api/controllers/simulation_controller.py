@@ -12,14 +12,12 @@ router = APIRouter()
 
 
 @router.get("/parse_and_build")
-def parse_and_build_cirucit(file_name: str):
+def parse_and_build_circuit(file_name: str):
     # data = parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
 
     circuit = Circuit()
     circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
-    # for key, value in data["gates"].items():
-    #     print(f"key: {key} --> {value}")
-    # return str(data)
+    #
     print(circuit)
 
 
