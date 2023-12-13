@@ -17,8 +17,24 @@ def parse_and_build_circuit(file_name: str):
 
     circuit = Circuit()
     circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
-    #
-    print(circuit)
+    inputs = circuit.inputs
+    inputs = [wire.get_wire_parameters() for wire in inputs]
+
+    all_wires = circuit.wires
+    all_wires = [wire.get_wire_parameters() for wire in all_wires]
+
+    all_gates = circuit.gates
+    all_gates = [gate.get_gate_parameters() for gate in all_gates]
+
+    outputs = circuit.outputs
+    outputs = [wire.get_wire_parameters() for wire in outputs]
+
+    return {
+        "inputs": inputs,
+        "all_wires": all_wires,
+        "all_gates": all_gates,
+        "outputs": outputs
+    }
 
 
 @router.post("/simulate")

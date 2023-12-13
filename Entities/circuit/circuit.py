@@ -76,22 +76,27 @@ class Circuit:
                                    re.findall(r'\(([^)]+)', gate_def)[0].split(',')]
 
                     fanin_wires_for_that_specific_gate = []
-
+                    # loop over each fanin found
                     for fanin_wire_name in fanin_names:
-                        wire: Union[Wire, None] = None
 
+                        # check if the fanin is already added to the circuit
                         if fanin_wire_name in self.get_all_wires_names():
-                            wire = self.get_wire_based_on_name(fanin_wire_name)
+                            wire: Wire = self.get_wire_based_on_name(fanin_wire_name)
+                            if wire.name == "11":
+                                print(wire.get_wire_parameters())
 
+                            # check if the wire has been seen as an input to a gate before
                             if wire.seen_as_input_before:
+                                # the wire has been seen as an input before, but it does not have any fanout yet. This
+                                # scenario happens when we have an input wire that has been connected to a gate, and now
+                                # it should be connected to another gate
                                 if len(wire.fanout) == 0:
                                     wire_one = Wire(name=f"{fanin_wire_name}.{len(wire.fanout) + 1}",
-                                                    seen_as_input_before=True,
-                                                    direct_connect_to_gate=self.get_gate_by_name(
-                                                        wire.direct_connect_to_gate),
-                                                    has_direct_connection_to_gate=True,
+                                                    seen_as_input_before=True, has_direct_connection_to_gate=True,
+                                                    direct_connect_to_gate=wire.direct_connect_to_gate,
                                                     can_be_triggered=True if wire.is_input else False)
                                     wire.fanout.append(wire_one)
+
                                     gate_connected_to_initial_wire_before_split = self.get_gate_connected_to_wire(wire)
                                     gate_connected_to_initial_wire_before_split.fanin_wires[next(
                                         (i for i, inst in
@@ -100,9 +105,8 @@ class Circuit:
 
                                     wire_two = Wire(name=f"{fanin_wire_name}.{len(wire.fanout) + 1}",
                                                     seen_as_input_before=True,
-                                                    direct_connect_to_gate=self.get_gate_by_name(
-                                                        wire.direct_connect_to_gate),
                                                     has_direct_connection_to_gate=True,
+                                                    direct_connect_to_gate=created_gate.name,
                                                     can_be_triggered=True if wire.is_input else False)
                                     wire.fanout.append(wire_two)
 
@@ -124,8 +128,8 @@ class Circuit:
                                     fanin_wires_for_that_specific_gate.append(additional_wire)
 
                             else:
-                                wire.direct_connect_to_gate = created_gate.name
                                 wire.has_direct_connection_to_gate = True
+                                wire.direct_connect_to_gate = created_gate.name
                                 wire.seen_as_input_before = True
 
                                 fanin_wires_for_that_specific_gate.append(wire)
@@ -175,8 +179,6 @@ class Circuit:
                     input_wire.ensure_fanout_can_be_triggered()
                     break
 
-
-
         simulated_gates = []
         non_simulated_gates = self.gates
 
@@ -202,3 +204,7 @@ class Circuit:
             to_be_returned[output_wire.name] = output_wire.value
 
         return to_be_returned
+
+    # TODO implement concurrent fault simulation
+    def concurrent_simulation(self, list_of_faults: List[StuckAt]):
+        return "hello"

@@ -14,6 +14,17 @@ class Gate:
     def set_output_wire(self, wire):
         self.output_wire = wire
 
+    def get_gate_parameters(self) -> dict:
+        fanin_names = [wire.name for wire in self.fanin_wires] if self.fanin_wires else None
+        output_wire_name = self.output_wire.name if self.output_wire else None
+
+        return {
+            'gate_name': self.name,
+            'gate_type': self.gate_type,
+            'fanin_wires': fanin_names,
+            'output_wire': output_wire_name
+        }
+
     def can_be_triggered(self):
         can_be_triggered = False
         for fanin_wire in self.fanin_wires:
