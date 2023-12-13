@@ -42,4 +42,15 @@ def simulate_circuit(simulate_circuit: SimulateCircuit):
     circuit = Circuit()
     circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], simulate_circuit.file_name))
     circuit.simulate_circuit(input_vector=simulate_circuit.input_params, place_stuck_at=simulate_circuit.stuck_at)
-    return circuit.get_circuit_output_values()
+
+    circuit_output_values = circuit.get_circuit_output_values()
+    wires = circuit.wires
+
+    wires_values = {}
+    for wire in wires:
+        wires_values[wire.name] = wire.value
+
+    return {
+        "circuit_output_values": circuit_output_values,
+        "wires_values": wires_values
+    }
