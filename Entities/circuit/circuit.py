@@ -20,6 +20,22 @@ class Circuit:
 
         return wires_names
 
+    def generate_wire_patterns(self):
+        def generate_patterns_helper(wires, index, pattern, patterns):
+            if index == len(wires):
+                patterns.append(pattern.copy())
+                return
+
+            pattern[wires[index].name] = False
+            generate_patterns_helper(wires, index + 1, pattern, patterns)
+
+            pattern[wires[index].name] = True
+            generate_patterns_helper(wires, index + 1, pattern, patterns)
+
+        patterns = []
+        generate_patterns_helper(self.inputs, 0, {}, patterns)
+        return patterns
+
     def get_wire_based_on_name(self, name: str):
         for index, wire in enumerate(self.wires):
             if name == wire.name:
@@ -204,7 +220,3 @@ class Circuit:
             to_be_returned[output_wire.name] = output_wire.value
 
         return to_be_returned
-
-    # TODO implement concurrent fault simulation
-    def concurrent_simulation(self, list_of_faults: List[StuckAt]):
-        return "hello"
