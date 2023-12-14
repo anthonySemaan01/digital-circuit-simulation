@@ -1,6 +1,7 @@
 import os
 import copy
 from fastapi import APIRouter
+import time
 
 from Entities.circuit.circuit import Circuit
 from domain.models.simulate_circuit import SimulateCircuit
@@ -61,6 +62,8 @@ def simulate_circuit(simulate_circuit: SimulateCircuit):
 
 @router.post("/serial_simulation")
 def simulate_circuit(serial_simulation: SerialSimulation):
+    start = time.time()
+    number_of_detected_faults = 0
     circuit = Circuit()
     circuit.parse_bench_file_with_unique_inputs(
         file_path=os.path.join(paths["benchmarks"], serial_simulation.file_name))
@@ -99,10 +102,16 @@ def simulate_circuit(serial_simulation: SerialSimulation):
                                         "vector_used": input_parameters,
                                         "true_value": circuit_results_per_input_pattern[index],
                                         "faulty_value": circuit_output})
+                number_of_detected_faults += 1
                 break
 
+    end = time.time()
     return {
         "input_patterns": new_input_patterns,
         "simulation_results": circuit_results_per_input_pattern,
-        "faults_detected": faults_detected
-    }
+        "faults_detected": faults_detected,
+        "total_time": end - start,
+        "fault_coverage": number_of_detected_faults / len(serial_simulation.stuck_at),
+        "fault_efficiency": number_of_detected_faults / (
+                    len(serial_simulation.stuck_at) + len(serial_simulation.stuck_at) - number_of_detected_faults)
+                    }
