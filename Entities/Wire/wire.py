@@ -33,9 +33,6 @@ class Wire:
 
                     fanout_wire.ensure_fanout_can_be_triggered()  # Recursively assign value to fanout wires
 
-    def __str__(self):
-        return f"name: {self.name} || value: {self.value} || given a value: {self.given_a_value} || can_be_triggered: {self.can_be_triggered} || fanout: {[str(wire) for wire in self.fanout]}"
-
     def get_wire_parameters(self) -> dict:
         return {
             'name': self.name,

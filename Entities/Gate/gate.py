@@ -33,9 +33,6 @@ class Gate:
 
         return True
 
-    def __str__(self):
-        return f"name: {self.name} || gate_type: {self.gate_type} || fan_in: {[str(wire) for wire in self.fanin_wires]} || output_wire: {self.output_wire}"
-
     def simulate(self):
 
         if self.output_wire.is_stuck_at:

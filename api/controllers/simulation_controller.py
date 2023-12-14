@@ -1,5 +1,5 @@
 import os
-
+import copy
 from fastapi import APIRouter
 
 from Entities.circuit.circuit import Circuit
@@ -70,6 +70,7 @@ def simulate_circuit(serial_simulation: SerialSimulation):
     for index, input_pattern in enumerate(input_patterns):
         new_input_patterns.append({index: input_pattern})
 
+    # Get true value simulation
     circuit_results_per_input_pattern = {}
     for index, input_pattern in enumerate(new_input_patterns):
         input_parameters: List[InputParam] = []
@@ -77,11 +78,31 @@ def simulate_circuit(serial_simulation: SerialSimulation):
         for input_name, input_value in input_pattern[index].items():
             input_parameters.append(InputParam(wire_name=input_name, value=input_value))
 
-        copy_of_circuit = circuit
+        copy_of_circuit = copy.deepcopy(circuit)
         copy_of_circuit.simulate_circuit(input_vector=input_parameters)
         circuit_results_per_input_pattern[index] = copy_of_circuit.get_circuit_output_values()
 
+    faults_detected = []
+    for stuck_at_fault in serial_simulation.stuck_at:
+        for index, input_pattern in enumerate(new_input_patterns):
+            # have the input parameter list compatible with simulate circuit
+            input_parameters: List[InputParam] = []
+            for input_name, input_value in input_pattern[index].items():
+                input_parameters.append(InputParam(wire_name=input_name, value=input_value))
+
+            copy_of_circuit = copy.deepcopy(circuit)
+            copy_of_circuit.simulate_circuit(input_vector=input_parameters, place_stuck_at=stuck_at_fault)
+            circuit_output = copy_of_circuit.get_circuit_output_values()
+
+            if circuit_output != circuit_results_per_input_pattern[index]:
+                faults_detected.append({"fault": stuck_at_fault,
+                                        "vector_used": input_parameters,
+                                        "true_value": circuit_results_per_input_pattern[index],
+                                        "faulty_value": circuit_output})
+                break
+
     return {
         "input_patterns": new_input_patterns,
-        "simulation_results": circuit_results_per_input_pattern
+        "simulation_results": circuit_results_per_input_pattern,
+        "faults_detected": faults_detected
     }

@@ -98,8 +98,6 @@ class Circuit:
                         # check if the fanin is already added to the circuit
                         if fanin_wire_name in self.get_all_wires_names():
                             wire: Wire = self.get_wire_based_on_name(fanin_wire_name)
-                            if wire.name == "11":
-                                print(wire.get_wire_parameters())
 
                             # check if the wire has been seen as an input to a gate before
                             if wire.seen_as_input_before:
@@ -179,7 +177,6 @@ class Circuit:
             stuck_at_wire.stuck_at_value = place_stuck_at.value
             stuck_at_wire.can_be_triggered = True
             stuck_at_wire.ensure_fanout_can_be_triggered()
-            print(f"stuck at wire: {stuck_at_wire}")
 
         # assign the desired values to input wires
         for input_wire in self.inputs:
@@ -203,7 +200,6 @@ class Circuit:
             for gate in non_simulated_gates:
                 if gate.can_be_triggered():
                     gate.simulate()
-                    print(str(gate))
                     simulated_gates.append(gate)
                 else:
                     remaining_gates.append(gate)
