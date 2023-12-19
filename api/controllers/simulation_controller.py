@@ -18,6 +18,7 @@ def parse_and_build_circuit(file_name: str,
 
 
 @router.post("/simulate")
+@inject
 def simulate_circuit(simulate_circuit_params: SimulateCircuit,
                      simulation_service: AbstractSimulationService = Depends(
                          Provide[Services.simulation_service])):
@@ -25,7 +26,8 @@ def simulate_circuit(simulate_circuit_params: SimulateCircuit,
 
 
 @router.post("/serial_simulation")
-def simulate_circuit(serial_simulation_params: SerialSimulation,
-                     simulation_service: AbstractSimulationService = Depends(
-                         Provide[Services.simulation_service])):
+@inject
+def serial_simulation(serial_simulation_params: SerialSimulation,
+                      simulation_service: AbstractSimulationService = Depends(
+                          Provide[Services.simulation_service])):
     return simulation_service.serial_simulation(serial_simulation=serial_simulation_params)

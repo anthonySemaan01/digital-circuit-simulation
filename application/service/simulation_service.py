@@ -9,6 +9,7 @@ from domain.contracts.services.abtract_simulation_service import AbstractSimulat
 from domain.models.input_param import InputParam
 from domain.models.serial_simulation import SerialSimulation
 from domain.models.simulate_circuit import SimulateCircuit
+from domain.models.input_param import StuckAt
 
 
 class SimulationService(AbstractSimulationService):
@@ -60,9 +61,15 @@ class SimulationService(AbstractSimulationService):
             copy_of_circuit = copy.deepcopy(circuit)
             copy_of_circuit.simulate_circuit(input_vector=input_parameters)
             circuit_results_per_input_pattern[index] = copy_of_circuit.get_circuit_output_values()
-
         faults_detected = []
-        for stuck_at_fault in serial_simulation.stuck_at:
+
+        stuck_at_faults = []
+        if len(serial_simulation.stuck_at) > 0:
+            stuck_at_faults = serial_simulation.stuck_at
+        else:
+            stuck_at_faults = circuit.get_all_faults_in_the_circuit()
+
+        for stuck_at_fault in stuck_at_faults:
             for index, input_pattern in enumerate(new_input_patterns):
                 # have the input parameter list compatible with simulate circuit
                 input_parameters: List[InputParam] = []
@@ -83,13 +90,15 @@ class SimulationService(AbstractSimulationService):
 
         end = time.time()
         return {
+            "total_time": end - start,
+            "total number of faults": len(stuck_at_faults),
+            "number of redundant faults": len(stuck_at_faults) - number_of_detected_faults,
+            "fault_coverage": number_of_detected_faults / len(stuck_at_faults),
+            "fault_efficiency": number_of_detected_faults / (
+                    len(stuck_at_faults) + len(stuck_at_faults) - number_of_detected_faults),
             "input_patterns": new_input_patterns,
             "simulation_results": circuit_results_per_input_pattern,
-            "faults_detected": faults_detected,
-            "total_time": end - start,
-            "fault_coverage": number_of_detected_faults / len(serial_simulation.stuck_at),
-            "fault_efficiency": number_of_detected_faults / (
-                    len(serial_simulation.stuck_at) + len(serial_simulation.stuck_at) - number_of_detected_faults)
+            "faults_detected": faults_detected
         }
 
     def build_circuit(self, file_name: str):

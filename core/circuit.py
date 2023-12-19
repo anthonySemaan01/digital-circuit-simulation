@@ -36,6 +36,14 @@ class Circuit:
         generate_patterns_helper(self.inputs, 0, {}, patterns)
         return patterns
 
+    def get_all_faults_in_the_circuit(self):
+        all_the_faults_in_circuit = []
+        for wire in self.wires:
+            all_the_faults_in_circuit.append(StuckAt(wire_name=wire.name, value=True))
+            all_the_faults_in_circuit.append(StuckAt(wire_name=wire.name, value=False))
+
+        return all_the_faults_in_circuit
+
     def get_wire_based_on_name(self, name: str):
         for index, wire in enumerate(self.wires):
             if name == wire.name:
