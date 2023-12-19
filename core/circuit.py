@@ -1,8 +1,8 @@
 import re
 from typing import List, Union
 
-from Entities.Gate.gate import Gate
-from Entities.Wire.wire import Wire
+from core.wire import Wire
+from core.gate import Gate
 from domain.models.input_param import InputParam, StuckAt
 
 
@@ -54,9 +54,6 @@ class Circuit:
         for gate in self.gates:
             if wire in gate.fanin_wires:
                 return gate
-
-    def __str__(self):
-        return f"inputs: {[str(wire) for wire in self.inputs]} || outputs: {[str(wire) for wire in self.outputs]} || gates: {[str(gate) for gate in self.gates]} || wires: {[str(wire) for wire in self.wires]}"
 
     def parse_bench_file_with_unique_inputs(self, file_path: str):
         wires_usage_count: dict = {}

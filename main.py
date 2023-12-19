@@ -5,11 +5,16 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from api.controllers import health_controller, simulation_controller
-from exceptions.application_error import ApplicationError
+from containers import Services
+from domain.exceptions.application_error import ApplicationError
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(version='1.0', title='Marias Course')
+    app = FastAPI(version='1.0', title='Digital Testing')
+    services = Services()
+
+    services.wire(
+        modules=[simulation_controller])
 
     app.add_middleware(
         CORSMiddleware,
@@ -27,7 +32,6 @@ def create_app() -> FastAPI:
 
     app.include_router(
         simulation_controller.router,
-        prefix="/simulate",
         tags=["Simulation"]
     )
 

@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from Entities.Wire.wire import Wire
+from core.wire import Wire
 
 
 class Gate:
