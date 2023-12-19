@@ -1,117 +1,31 @@
-import os
-import copy
-from fastapi import APIRouter
-import time
+from dependency_injector.wiring import inject, Provide
+from fastapi import APIRouter, Depends
 
-from Entities.circuit.circuit import Circuit
-from domain.models.simulate_circuit import SimulateCircuit
+from containers import Services
+from domain.contracts.services.abtract_simulation_service import AbstractSimulationService
 from domain.models.serial_simulation import SerialSimulation
-from shared.helpers.json_handler import read_json_file
-from domain.models.input_param import InputParam
-from typing import List, Dict
-
-paths = read_json_file("./assets/paths.json")
+from domain.models.simulate_circuit import SimulateCircuit
 
 router = APIRouter()
 
 
 @router.get("/parse_and_build")
-def parse_and_build_circuit(file_name: str):
-    # data = parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
-
-    circuit = Circuit()
-    circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], file_name))
-    inputs = circuit.inputs
-    inputs = [wire.get_wire_parameters() for wire in inputs]
-
-    all_wires = circuit.wires
-    all_wires = [wire.get_wire_parameters() for wire in all_wires]
-
-    all_gates = circuit.gates
-    all_gates = [gate.get_gate_parameters() for gate in all_gates]
-
-    outputs = circuit.outputs
-    outputs = [wire.get_wire_parameters() for wire in outputs]
-
-    return {
-        "inputs": inputs,
-        "all_wires": all_wires,
-        "all_gates": all_gates,
-        "outputs": outputs
-    }
+@inject
+def parse_and_build_circuit(file_name: str,
+                            simulation_service: AbstractSimulationService = Depends(
+                                Provide[Services.simulation_service])):
+    return simulation_service.build_circuit(file_name=file_name)
 
 
 @router.post("/simulate")
-def simulate_circuit(simulate_circuit: SimulateCircuit):
-    circuit = Circuit()
-    circuit.parse_bench_file_with_unique_inputs(file_path=os.path.join(paths["benchmarks"], simulate_circuit.file_name))
-    circuit.simulate_circuit(input_vector=simulate_circuit.input_params, place_stuck_at=simulate_circuit.stuck_at)
-
-    circuit_output_values = circuit.get_circuit_output_values()
-    wires = circuit.wires
-
-    wires_values = {}
-    for wire in wires:
-        wires_values[wire.name] = wire.value
-
-    return {
-        "circuit_output_values": circuit_output_values,
-        "wires_values": wires_values
-    }
+def simulate_circuit(simulate_circuit_params: SimulateCircuit,
+                     simulation_service: AbstractSimulationService = Depends(
+                         Provide[Services.simulation_service])):
+    return simulation_service.simulate(simulate_circuit=simulate_circuit_params)
 
 
 @router.post("/serial_simulation")
-def simulate_circuit(serial_simulation: SerialSimulation):
-    start = time.time()
-    number_of_detected_faults = 0
-    circuit = Circuit()
-    circuit.parse_bench_file_with_unique_inputs(
-        file_path=os.path.join(paths["benchmarks"], serial_simulation.file_name))
-
-    input_patterns = circuit.generate_wire_patterns()
-    new_input_patterns = []
-    for index, input_pattern in enumerate(input_patterns):
-        new_input_patterns.append({index: input_pattern})
-
-    # Get true value simulation
-    circuit_results_per_input_pattern = {}
-    for index, input_pattern in enumerate(new_input_patterns):
-        input_parameters: List[InputParam] = []
-
-        for input_name, input_value in input_pattern[index].items():
-            input_parameters.append(InputParam(wire_name=input_name, value=input_value))
-
-        copy_of_circuit = copy.deepcopy(circuit)
-        copy_of_circuit.simulate_circuit(input_vector=input_parameters)
-        circuit_results_per_input_pattern[index] = copy_of_circuit.get_circuit_output_values()
-
-    faults_detected = []
-    for stuck_at_fault in serial_simulation.stuck_at:
-        for index, input_pattern in enumerate(new_input_patterns):
-            # have the input parameter list compatible with simulate circuit
-            input_parameters: List[InputParam] = []
-            for input_name, input_value in input_pattern[index].items():
-                input_parameters.append(InputParam(wire_name=input_name, value=input_value))
-
-            copy_of_circuit = copy.deepcopy(circuit)
-            copy_of_circuit.simulate_circuit(input_vector=input_parameters, place_stuck_at=stuck_at_fault)
-            circuit_output = copy_of_circuit.get_circuit_output_values()
-
-            if circuit_output != circuit_results_per_input_pattern[index]:
-                faults_detected.append({"fault": stuck_at_fault,
-                                        "vector_used": input_parameters,
-                                        "true_value": circuit_results_per_input_pattern[index],
-                                        "faulty_value": circuit_output})
-                number_of_detected_faults += 1
-                break
-
-    end = time.time()
-    return {
-        "input_patterns": new_input_patterns,
-        "simulation_results": circuit_results_per_input_pattern,
-        "faults_detected": faults_detected,
-        "total_time": end - start,
-        "fault_coverage": number_of_detected_faults / len(serial_simulation.stuck_at),
-        "fault_efficiency": number_of_detected_faults / (
-                    len(serial_simulation.stuck_at) + len(serial_simulation.stuck_at) - number_of_detected_faults)
-                    }
+def simulate_circuit(serial_simulation_params: SerialSimulation,
+                     simulation_service: AbstractSimulationService = Depends(
+                         Provide[Services.simulation_service])):
+    return simulation_service.serial_simulation(serial_simulation=serial_simulation_params)
