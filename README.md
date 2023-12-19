@@ -46,11 +46,11 @@ Request Body:
 }
 ```
 
-### 2. Serial Simulation
+### 3. Serial Simulation
 
 Endpoint: `/serial_simulation`
 
-Description: Perform serial simulation
+Description: Perform serial simulation.
 Request Body:
 ```json
 {
