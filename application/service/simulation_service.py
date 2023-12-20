@@ -95,8 +95,8 @@ class SimulationService(AbstractSimulationService):
             "total_time": f"{format((end - start) * 1000, '2f')} ms",
             "total number of faults": len(stuck_at_faults),
             "number of redundant faults": len(stuck_at_faults) - number_of_detected_faults,
-            "coverage": len([fault for fault in stuck_at_faults if fault not in faults_detected_simple]) / len(
-                stuck_at_faults),
+            "coverage": str(number_of_detected_faults) + "/" + str(len(
+                stuck_at_faults)),
             "fault_coverage": number_of_detected_faults / len(stuck_at_faults),
             "fault_efficiency": number_of_detected_faults / (
                     len(stuck_at_faults) + len(stuck_at_faults) - number_of_detected_faults),
