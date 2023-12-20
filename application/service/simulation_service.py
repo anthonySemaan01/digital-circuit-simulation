@@ -64,6 +64,7 @@ class SimulationService(AbstractSimulationService):
         faults_detected = []
 
         stuck_at_faults = []
+        faults_detected_simple = []
         if len(serial_simulation.stuck_at) > 0:
             stuck_at_faults = serial_simulation.stuck_at
         else:
@@ -81,6 +82,7 @@ class SimulationService(AbstractSimulationService):
                 circuit_output = copy_of_circuit.get_circuit_output_values()
 
                 if circuit_output != circuit_results_per_input_pattern[index]:
+                    faults_detected_simple.append(stuck_at_fault)
                     faults_detected.append({"fault": stuck_at_fault,
                                             "vector_used": input_parameters,
                                             "true_value": circuit_results_per_input_pattern[index],
@@ -90,7 +92,7 @@ class SimulationService(AbstractSimulationService):
 
         end = time.time()
         return {
-            "total_time": end - start,
+            "total_time": f"{format((end -start)* 1000, '2f')} ms",
             "total number of faults": len(stuck_at_faults),
             "number of redundant faults": len(stuck_at_faults) - number_of_detected_faults,
             "fault_coverage": number_of_detected_faults / len(stuck_at_faults),
@@ -98,7 +100,8 @@ class SimulationService(AbstractSimulationService):
                     len(stuck_at_faults) + len(stuck_at_faults) - number_of_detected_faults),
             "input_patterns": new_input_patterns,
             "simulation_results": circuit_results_per_input_pattern,
-            "faults_detected": faults_detected
+            "faults_detected": faults_detected,
+            "faults_not_detected": [fault for fault in stuck_at_faults if fault not in faults_detected_simple]
         }
 
     def build_circuit(self, file_name: str):
