@@ -92,15 +92,17 @@ class SimulationService(AbstractSimulationService):
 
         end = time.time()
         return {
-            "total_time": f"{format((end -start)* 1000, '2f')} ms",
+            "total_time": f"{format((end - start) * 1000, '2f')} ms",
             "total number of faults": len(stuck_at_faults),
             "number of redundant faults": len(stuck_at_faults) - number_of_detected_faults,
+            "coverage": len([fault for fault in stuck_at_faults if fault not in faults_detected_simple]) / len(
+                stuck_at_faults),
             "fault_coverage": number_of_detected_faults / len(stuck_at_faults),
             "fault_efficiency": number_of_detected_faults / (
                     len(stuck_at_faults) + len(stuck_at_faults) - number_of_detected_faults),
-            "input_patterns": new_input_patterns,
-            "simulation_results": circuit_results_per_input_pattern,
-            "faults_detected": faults_detected,
+            "input_patterns": len(new_input_patterns),
+            # "simulation_results": circuit_results_per_input_pattern,
+            # "faults_detected": faults_detected,
             "faults_not_detected": [fault for fault in stuck_at_faults if fault not in faults_detected_simple]
         }
 

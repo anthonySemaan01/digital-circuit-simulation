@@ -59,11 +59,13 @@ class Gate:
             elif self.gate_type == "NOR":
                 value = not any(values_at_fanin_wires)
             elif self.gate_type == "XOR":
-                value = sum(values_at_fanin_wires) == 1
+                true_count = sum(values_at_fanin_wires)
+                value = true_count % 2 == 1
             elif self.gate_type == "NOT":
                 value = not values_at_fanin_wires[0]
             elif self.gate_type == "XNOR":
-                value = not (sum(values_at_fanin_wires))
+                true_count = sum(values_at_fanin_wires)
+                value = true_count % 2 == 0
 
             self.output_wire.value = value
             self.output_wire.given_a_value = True
